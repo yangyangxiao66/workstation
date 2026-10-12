@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>功能台 · 开发功能管理</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="layout">
+
+  <aside class="side" id="side">
+    <div class="brand">
+      <h1><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>功能台</h1>
+      <span class="brand-sub">AI 开发 · 功能管理台</span>
+    </div>
+    <nav class="side-nav" id="sideProjects" aria-label="切换项目"></nav>
+    <nav class="side-nav" id="sideStatus" aria-label="按状态筛选"></nav>
+    <nav class="side-nav" id="sideModules" aria-label="按模块筛选"></nav>
+    <div class="side-foot">
+      <button id="btnCopy" class="btn ghost w100" type="button">复制 Markdown</button>
+      <span class="side-meta">数据存于 data/features.json</span>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="phead" id="phead"></header>
+
+    <header class="topbar" id="topbar">
+      <button id="btnMenu" class="btn ghost menu-btn" type="button" aria-label="打开菜单">☰</button>
+      <input id="search" class="ctl search" type="search" placeholder="搜索标题 / 描述 / 标签（按 / 聚焦）" autocomplete="off">
+      <select id="sortSel" class="ctl" aria-label="排序方式">
+        <option value="updated">最近更新</option>
+        <option value="priority">优先级优先</option>
+        <option value="created">创建时间</option>
+      </select>
+      <span class="count" id="count"></span>
+      <button id="btnNew" class="btn primary" type="button">＋ 新功能</button>
+    </header>
+
+    <nav class="pipeline" id="pipeline" aria-label="状态概览"></nav>
+
+    <div class="table-wrap" id="list" aria-live="polite"></div>
+  </div>
+
+</div>
+
+<dialog id="modal" class="modal">
+  <form id="form">
+    <h2 id="modalTitle">新功能</h2>
+    <label class="field"><span>标题</span>
+      <input id="fTitle" required maxlength="200" placeholder="例如：导出 Excel 报表">
+    </label>
+    <label class="field"><span>描述</span>
+      <textarea id="fDesc" rows="3" maxlength="5000" placeholder="要做什么、验收标准、备注……"></textarea>
+    </label>
+    <div class="field-row">
+      <label class="field"><span>模块</span>
+        <input id="fModule" maxlength="50" list="moduleList" placeholder="如：账号 / 支付">
+      </label>
+      <label class="field"><span>状态</span>
+        <select id="fStatus">
+          <option value="idea">想法</option>
+          <option value="todo" selected>待开发</option>
+          <option value="doing">开发中</option>
+          <option value="done">已完成</option>
+          <option value="shelved">已搁置</option>
+        </select>
+      </label>
+      <label class="field"><span>优先级</span>
+        <select id="fPriority">
+          <option value="high">高</option>
+          <option value="mid" selected>中</option>
+          <option value="low">低</option>
+        </select>
+      </label>
+    </div>
+    <label class="field"><span>完成度</span>
+      <div class="prog-edit">
+        <input id="fProgress" type="range" min="0" max="100" step="5" value="0">
+        <output id="fProgressVal" for="fProgress">0%</output>
+      </div>
+    </label>
+    <label class="field"><span>标签</span>
+      <input id="fTags" maxlength="120" placeholder="逗号分隔，如：auth, v2">
+    </label>
+    <datalist id="moduleList"></datalist>
+    <div class="modal-actions">
+      <button type="button" class="btn ghost" id="btnCancel">取消</button>
+      <button type="submit" class="btn primary">保存</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="pmodal" class="modal">
+  <form id="pform">
+    <h2 id="pmodalTitle">新建项目</h2>
+    <label class="field"><span>项目名</span>
+      <input id="pName" required maxlength="100" placeholder="例如：商城小程序">
+    </label>
+    <label class="field"><span>说明（可选）</span>
+      <input id="pDesc" maxlength="500" placeholder="一句话描述这个项目是做什么的">
+    </label>
+    <div class="modal-actions">
+      <button type="button" class="btn ghost" id="pCancel">取消</button>
+      <button type="submit" class="btn primary">保存</button>
+    </div>
+  </form>
+</dialog>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script src="/app.js"></script>
+</body>
+</html>
