@@ -432,6 +432,83 @@ function buildMarkdown(rows) {
   return lines.join('\n');
 }
 
+/* ---------- 自绘下拉框（圆角弹层，替代原生 select 的系统样式） ---------- */
+
+function initDd(select) {
+  const wrap = document.createElement('div');
+  wrap.className = 'dd';
+  select.parentNode.insertBefore(wrap, select);
+  wrap.appendChild(select);
+  select.classList.add('dd-native');
+
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'dd-btn';
+  const pop = document.createElement('div');
+  pop.className = 'dd-pop';
+  pop.setAttribute('role', 'listbox');
+  wrap.appendChild(btn);
+  wrap.appendChild(pop);
+
+  function render() {
+    const cur = select.selectedOptions[0] || select.options[0];
+    btn.innerHTML = '<span class="dd-label">' + esc(cur ? cur.textContent : '') + '</span><i class="dd-caret" aria-hidden="true"></i>';
+    pop.innerHTML = [...select.options].map((o) =>
+      '<button type="button" class="dd-opt' + (o.value === select.value ? ' sel' : '') + '" role="option" data-v="' + esc(o.value) + '">' + esc(o.textContent) + '</button>'
+    ).join('');
+  }
+
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    document.querySelectorAll('.dd.open').forEach((d) => { if (d !== wrap) d.classList.remove('open'); });
+    wrap.classList.toggle('open');
+    if (wrap.classList.contains('open')) {
+      const sel = pop.querySelector('.dd-opt.sel');
+      (sel || pop.querySelector('.dd-opt')).focus();
+    }
+  });
+
+  pop.addEventListener('click', (e) => {
+    const o = e.target.closest('.dd-opt');
+    if (!o) return;
+    e.stopPropagation();
+    select.value = o.dataset.v;
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+    render();
+    wrap.classList.remove('open');
+    btn.focus();
+  });
+
+  pop.addEventListener('keydown', (e) => {
+    const opts = [...pop.querySelectorAll('.dd-opt')];
+    const i = opts.indexOf(document.activeElement);
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      e.stopPropagation();
+      wrap.classList.remove('open');
+      btn.focus();
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      opts[Math.min(i + 1, opts.length - 1)].focus();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      opts[Math.max(i - 1, 0)].focus();
+    } else if (e.key === 'Enter' && i >= 0) {
+      e.preventDefault();
+      opts[i].click();
+    }
+  });
+
+  document.addEventListener('click', () => wrap.classList.remove('open'));
+  select._ddRender = render;
+  render();
+}
+
+// 程序化改了 select.value 之后调用，刷新按钮显示
+function syncDd(select) {
+  if (select._ddRender) select._ddRender();
+}
+
 /* ---------- 弹窗 ---------- */
 
 let editingFeatureId = null;
@@ -452,6 +529,8 @@ function openFeatureModal(f) {
   els.fPriority.value = f ? f.priority : 'mid';
   setProgressUI(f ? fProgress(f) : 0);
   els.fTags.value = f && f.tags ? f.tags.join(', ') : '';
+  syncDd(els.fStatus);
+  syncDd(els.fPriority);
   els.modal.showModal();
   els.fTitle.focus();
 }
@@ -634,6 +713,8 @@ function init() {
     els[id] = $(id);
   }
   bind();
+  // 三个下拉框换成自绘圆角样式
+  [els.sortSel, els.fStatus, els.fPriority].forEach(initDd);
   refresh().catch((e) => toast('加载失败：' + e.message));
 }
 

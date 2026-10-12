@@ -6,6 +6,7 @@
    状态色承担信息编码：想法·紫 / 待开发·赭 / 开发中·蓝 / 已完成·绿 / 已搁置·暖灰。 */
 
 :root {
+  color-scheme: light; /* 固定浅色，防止原生控件（滚动条/弹层）跟随系统变暗 */
   --bg: #fbf5e2;
   --grid: rgba(122, 96, 30, 0.07);
   --surface: #fffdf4;
@@ -244,6 +245,84 @@ body {
 }
 
 .ctl::placeholder { color: var(--muted); }
+
+/* 自绘下拉框（圆角弹层） */
+
+.dd { position: relative; display: inline-flex; }
+
+select.dd-native { display: none; }
+
+.dd-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font: inherit;
+  font-size: 13.5px;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.dd-btn:hover { border-color: color-mix(in srgb, var(--ink) 30%, var(--line)); }
+
+.dd.open .dd-btn { border-color: var(--accent); }
+
+.dd-caret {
+  flex: none;
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid var(--muted);
+}
+
+.dd-pop {
+  display: none;
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0;
+  min-width: 100%;
+  z-index: 30;
+  padding: 5px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(60, 50, 10, 0.18);
+}
+
+.dd.open .dd-pop { display: block; }
+
+.dd-opt {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 8px 11px;
+  font: inherit;
+  font-size: 13.5px;
+  text-align: left;
+  color: var(--ink);
+  background: none;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.dd-opt:hover, .dd-opt:focus-visible {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  outline: none;
+}
+
+.dd-opt.sel { color: var(--accent); font-weight: 600; }
+
+.dd-opt.sel::after { content: "✓"; margin-left: auto; padding-left: 16px; font-family: var(--mono); }
+
+/* 弹窗里的下拉底色与表单字段一致 */
+.field .dd-btn { background: var(--field); }
 
 .search { flex: 1 1 220px; min-width: 150px; }
 
