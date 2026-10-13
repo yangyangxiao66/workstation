@@ -803,10 +803,12 @@ function init() {
 
 init();
 
-// 开发热更新：public/ 下的文件被修改时，页面自动刷新（改 server.js 仍需重启服务）
+// 开发热更新：public/ 下的文件被修改时整页刷新（改 server.js 仍需重启服务）；
+// data/features.json 被外部修改（MCP / 直接编辑文件）时只软刷新数据，不打断当前操作
 if (window.EventSource) {
   const es = new EventSource('/api/hot');
   es.onmessage = (e) => {
     if (e.data === 'reload') location.reload();
+    else if (e.data === 'reload-data') refresh(state.projectId).catch(() => {});
   };
 }

@@ -57,19 +57,32 @@ function readBody(req) {
   });
 }
 
-/* ---------- 热更新：public/ 文件变化时通知页面自动刷新 ---------- */
+/* ---------- 热更新 ---------- */
+// 1) public/ 前端文件变化 → 页面整页刷新（开发用）
+// 2) data/features.json 变化（API/MCP/直接编辑）→ 页面软刷新数据（不整页跳）
 
 const hotClients = new Set();
 
+function broadcast(event) {
+  for (const res of hotClients) {
+    try { res.write('data: ' + event + '\n\n'); } catch { /* 连接已断开，忽略 */ }
+  }
+}
+
 try {
-  fs.watch(PUBLIC_DIR, { recursive: true }, () => {
-    for (const res of hotClients) {
-      try { res.write('data: reload\n\n'); } catch { /* 连接已断开，忽略 */ }
-    }
-  });
+  fs.watch(PUBLIC_DIR, { recursive: true }, () => broadcast('reload'));
 } catch {
   console.warn('热更新不可用：当前环境不支持递归监视目录');
 }
+
+let dataTimer = null;
+try {
+  fs.watch(path.dirname(store.DATA_FILE), (event, filename) => {
+    if (filename && !String(filename).includes('features.json')) return;
+    clearTimeout(dataTimer); // 防抖：tmp 写入 + 改名会触发两次
+    dataTimer = setTimeout(() => broadcast('reload-data'), 120);
+  });
+} catch { /* 数据目录热更新不可用则跳过 */ }
 
 function serveHot(req, res) {
   res.writeHead(200, {
