@@ -373,13 +373,57 @@ async function switchProject(id) {
   } catch { /* 记不住也没关系 */ }
 }
 
-function onDeleteFeature(btn, f) {
-  if (btn.dataset.armed === '1') {
-    api('DELETE', '/api/features/' + f.id)
-      .then(() => refresh(state.projectId).then(() => toast('已删除 ' + f.id)))
-      .catch((e) => toast(e.message));
-  } else {
-    armButton(btn, '删除', '确认删除？', 2600);
+/* ---------- 居中确认弹窗 ---------- */
+
+// confirmAction({title, msg, okText}) → Promise<boolean>，点删除/确定返回 true
+function confirmAction(opt) {
+  return new Promise((resolve) => {
+    els.cTitle.textContent = (opt && opt.title) || '确认操作';
+    els.cMsg.textContent = (opt && opt.msg) || '';
+    els.cOk.textContent = (opt && opt.okText) || '删除';
+    els.cmodal.showModal();
+
+    function cleanup() {
+      els.cOk.removeEventListener('click', onOk);
+      els.cCancel.removeEventListener('click', onCancel);
+      els.cmodal.removeEventListener('close', onClose);
+    }
+    function finish(v) {
+      cleanup();
+      resolve(v);
+    }
+    function onOk() {
+      els.cmodal.close();
+      finish(true);
+    }
+    function onCancel() {
+      els.cmodal.close();
+      finish(false);
+    }
+    // Esc / 点遮罩关闭 = 取消
+    function onClose() {
+      cleanup();
+      resolve(false);
+    }
+
+    els.cOk.addEventListener('click', onOk);
+    els.cCancel.addEventListener('click', onCancel);
+    els.cmodal.addEventListener('close', onClose);
+  });
+}
+
+async function onDeleteFeature(f) {
+  const ok = await confirmAction({
+    title: '删除功能',
+    msg: '删除 ' + f.id + '「' + f.title + '」？此操作不可恢复。',
+  });
+  if (!ok) return;
+  try {
+    await api('DELETE', '/api/features/' + f.id);
+    await refresh(state.projectId);
+    toast('已删除 ' + f.id);
+  } catch (e) {
+    toast(e.message);
   }
 }
 
@@ -403,7 +447,7 @@ function openProjMenu(btn, pid) {
   menu.style.top = r.bottom + 4 + 'px';
   menu.style.left = Math.max(8, r.right - menu.offsetWidth) + 'px';
 
-  menu.addEventListener('click', (e) => {
+  menu.addEventListener('click', async (e) => {
     e.stopPropagation();
     const item = e.target.closest('.pm-item');
     if (!item) return;
@@ -412,31 +456,25 @@ function openProjMenu(btn, pid) {
       const p = state.db.projects.find((x) => x.id === pid);
       if (p) openProjectModal(p);
     } else if (item.dataset.pact === 'del') {
-      if (item.dataset.armed === '1') {
-        const p = state.db.projects.find((x) => x.id === pid);
-        const name = p ? p.name : '';
-        api('DELETE', '/api/projects/' + pid)
-          .then(() => refresh(pid === state.projectId ? null : state.projectId))
-          .then(() => toast('已删除项目：' + name))
-          .catch((err) => toast(err.message));
-        closeProjMenu();
-      } else {
-        armButton(item, '删除项目', '确认删除？', 3000);
+      closeProjMenu();
+      const p = state.db.projects.find((x) => x.id === pid);
+      if (!p) return;
+      const n = p.features.length;
+      const ok = await confirmAction({
+        title: '删除项目',
+        msg: '删除项目「' + p.name + '」？' + (n ? '项目下的 ' + n + ' 个功能会一起删除，' : '') + '此操作不可恢复。',
+        okText: '删除项目',
+      });
+      if (!ok) return;
+      try {
+        await api('DELETE', '/api/projects/' + pid);
+        await refresh(pid === state.projectId ? null : state.projectId);
+        toast('已删除项目：' + p.name);
+      } catch (err) {
+        toast(err.message);
       }
     }
   });
-}
-
-// 两段式确认：第一次点击变成确认态，超时恢复
-function armButton(btn, normalText, armedText, ms) {
-  btn.dataset.armed = '1';
-  btn.textContent = armedText;
-  btn.classList.add('armed');
-  setTimeout(() => {
-    btn.dataset.armed = '';
-    btn.textContent = normalText;
-    btn.classList.remove('armed');
-  }, ms);
 }
 
 /* ---------- 复制 Markdown ---------- */
@@ -587,9 +625,14 @@ function bind() {
   // 小屏：打开 / 关闭侧栏抽屉
   els.btnMenu.addEventListener('click', () => els.side.classList.toggle('open'));
 
-  // 点击遮罩关闭弹窗
-  els.modal.addEventListener('click', (e) => { if (e.target === els.modal) els.modal.close(); });
-  els.pmodal.addEventListener('click', (e) => { if (e.target === els.pmodal) els.pmodal.close(); });
+  // 新建/编辑弹窗只能通过 × 或「取消」关闭：点遮罩、按 Esc 都不关，防止误触丢失已填内容
+  els.modalX.addEventListener('click', () => els.modal.close());
+  els.pmodalX.addEventListener('click', () => els.pmodal.close());
+  els.modal.addEventListener('cancel', (e) => e.preventDefault());
+  els.pmodal.addEventListener('cancel', (e) => e.preventDefault());
+
+  // 确认弹窗保持轻量：点遮罩 = 取消
+  els.cmodal.addEventListener('click', (e) => { if (e.target === els.cmodal) els.cmodal.close(); });
 
   // 功能表单
   els.fProgress.addEventListener('input', () => {
@@ -727,7 +770,7 @@ function bind() {
     } else if (act === 'edit') {
       openFeatureModal(f);
     } else if (act === 'del') {
-      onDeleteFeature(btn, f);
+      onDeleteFeature(f);
     }
   });
 
@@ -751,7 +794,8 @@ function init() {
     'search', 'sortSel', 'count', 'btnCopy', 'btnNew', 'list', 'topbar', 'phead',
     'modal', 'modalTitle', 'form', 'btnCancel', 'fTitle', 'fDesc', 'fModule', 'fStatus',
     'fPriority', 'fProgress', 'fProgressVal', 'fTags', 'pmodal', 'pmodalTitle', 'pform',
-    'pCancel', 'pName', 'pDesc', 'toast']) {
+    'pCancel', 'pName', 'pDesc', 'modalX', 'pmodalX', 'cmodal', 'cTitle', 'cMsg',
+    'cOk', 'cCancel', 'toast']) {
     els[id] = $(id);
   }
   bind();

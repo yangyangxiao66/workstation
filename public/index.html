@@ -46,6 +46,7 @@
 </div>
 
 <dialog id="modal" class="modal">
+  <button type="button" class="modal-x" id="modalX" aria-label="关闭">✕</button>
   <form id="form">
     <h2 id="modalTitle">新功能</h2>
     <label class="field"><span>标题</span>
@@ -93,6 +94,7 @@
 </dialog>
 
 <dialog id="pmodal" class="modal">
+  <button type="button" class="modal-x" id="pmodalX" aria-label="关闭">✕</button>
   <form id="pform">
     <h2 id="pmodalTitle">新建项目</h2>
     <label class="field"><span>项目名</span>
@@ -106,6 +108,15 @@
       <button type="submit" class="btn primary">保存</button>
     </div>
   </form>
+</dialog>
+
+<dialog id="cmodal" class="modal modal-sm">
+  <h2 id="cTitle">确认删除</h2>
+  <p id="cMsg" class="c-msg"></p>
+  <div class="modal-actions">
+    <button type="button" class="btn ghost" id="cCancel">取消</button>
+    <button type="button" class="btn danger" id="cOk">删除</button>
+  </div>
 </dialog>
 
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
