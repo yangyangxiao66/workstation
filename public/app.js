@@ -41,7 +41,7 @@ function relTime(iso) {
   const day = Math.floor(h / 24);
   if (day === 1) return '昨天';
   if (day < 30) return day + ' 天前';
-  return new Date(iso).toLocaleDateString('zh-CN');
+  return new Date(iso).getMonth() + 1 + '月' + new Date(iso).getDate() + '日';
 }
 
 async function api(method, url, body) {
@@ -290,7 +290,20 @@ function renderList() {
   const GROUP_ORDER = MD_ORDER; // doing → todo → idea → shelved → done
   const filtered = filterActive();
   let html =
-    '<table class="ftable"><thead><tr>' +
+    '<table class="ftable">' +
+    // 固定布局的显式列宽，保证表头与数据逐列对齐、间距均匀
+    '<colgroup>' +
+      '<col style="width:7%">' +   // 编号
+      '<col style="width:22%">' +  // 功能
+      '<col style="width:9%">' +   // 状态
+      '<col style="width:10%">' +  // 完成度
+      '<col style="width:7%">' +   // 优先级
+      '<col style="width:9%">' +   // 模块
+      '<col style="width:7%">' +   // 标签
+      '<col style="width:8%">' +   // 更新
+      '<col style="width:21%">' +  // 操作
+    '</colgroup>' +
+    '<thead><tr>' +
       '<th>编号</th><th>功能</th><th>状态</th><th>完成度</th><th>优先级</th><th>模块</th><th>标签</th><th>更新</th><th>操作</th>' +
     '</tr></thead>';
   for (const st of GROUP_ORDER) {
