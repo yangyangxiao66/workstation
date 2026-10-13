@@ -292,21 +292,21 @@ function renderList() {
   let html =
     '<table class="ftable"><thead><tr>' +
       '<th>编号</th><th>功能</th><th>状态</th><th>完成度</th><th>优先级</th><th>模块</th><th>标签</th><th>更新</th><th>操作</th>' +
-    '</tr></thead><tbody>';
+    '</tr></thead>';
   for (const st of GROUP_ORDER) {
     const group = rows.filter((f) => f.status === st);
     if (!group.length && filtered) continue; // 筛选时省略空区块，平时保留区块骨架
-    html += groupHeaderRow(st, group.length);
-    html += group.map(rowHtml).join('');
+    html += '<tbody>' + groupHeaderRow(st, group.length) + group.map(rowHtml).join('') + '</tbody>';
   }
-  html += '</tbody></table>';
+  html += '</table>';
   els.list.innerHTML = html;
 }
 
+// 分组标题行：用表头单元格（th）标识，不是数据行
 function groupHeaderRow(st, n) {
-  return '<tr class="grp" style="--sc:var(--c-' + st + ')"><td colspan="9">' +
+  return '<tr class="grp" style="--sc:var(--c-' + st + ')"><th colspan="9" scope="colgroup">' +
     '<span class="grp-label">' + STATUS[st].label + '</span><span class="grp-n">' + n + '</span>' +
-  '</td></tr>';
+  '</th></tr>';
 }
 
 function rowHtml(f) {

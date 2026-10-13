@@ -490,12 +490,18 @@ table.ftable {
 
 .ftable tbody tr:last-child td { border-bottom: none; }
 
-/* 状态分组区块头（分层区域） */
+/* 状态分组标题行（表头单元格，分层区域） */
 
-.ftable tr.grp td {
+.ftable tr.grp th {
   padding: 7px 12px;
+  text-align: left;
+  font-weight: 400;
+  font-size: inherit;
+  color: var(--ink);
   background: color-mix(in srgb, var(--sc) 9%, var(--field));
   border-bottom: 1px solid var(--line);
+  border-left: 3px solid var(--sc);
+  white-space: nowrap;
 }
 
 .ftable tr.grp + tr td { border-top: none; }
