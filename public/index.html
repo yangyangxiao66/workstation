@@ -18,6 +18,7 @@
     <nav class="side-nav" id="sideStatus" aria-label="按状态筛选"></nav>
     <nav class="side-nav" id="sideModules" aria-label="按模块筛选"></nav>
     <div class="side-foot">
+      <button id="btnMcp" class="btn ghost w100" type="button">MCP 接入说明</button>
       <button id="btnCopy" class="btn ghost w100" type="button">复制 Markdown</button>
       <span class="side-meta">数据存于 data/features.json</span>
     </div>
@@ -116,6 +117,47 @@
   <div class="modal-actions">
     <button type="button" class="btn ghost" id="cCancel">取消</button>
     <button type="button" class="btn danger" id="cOk">删除</button>
+  </div>
+</dialog>
+
+<dialog id="mmodal" class="modal modal-lg">
+  <button type="button" class="modal-x" id="mmodalX" aria-label="关闭">✕</button>
+  <h2>MCP 接入说明</h2>
+
+  <div class="mcp-block">
+    <div class="mcp-cap">块一 · 提供给 AI 的工具</div>
+    <ul class="mcp-tools">
+      <li><code>list_projects</code><span>所有项目 + 完成度</span></li>
+      <li><code>list_features</code><span>功能清单（按项目 / 状态过滤）</span></li>
+      <li><code>get_feature</code><span>单个功能详情</span></li>
+      <li><code>create_feature</code><span>录入新功能</span></li>
+      <li><code>update_feature</code><span>修改功能（状态/完成度联动）</span></li>
+      <li><code>advance_feature</code><span>推进状态一步</span></li>
+      <li><code>delete_feature</code><span>删除功能</span></li>
+      <li><code>create_project</code><span>创建项目</span></li>
+      <li><code>delete_project</code><span>删除项目（连同功能）</span></li>
+      <li><code>export_markdown</code><span>导出 Markdown 清单</span></li>
+    </ul>
+  </div>
+
+  <div class="mcp-block">
+    <div class="mcp-cap">块二 · 怎么连接（JSON 字段）</div>
+    <pre class="code-block" id="mcpJson">{
+  "mcpServers": {
+    "feature-board": {
+      "command": "node",
+      "args": ["D:/kaifamanager/mcp-server.js"]
+    }
+  }
+}</pre>
+    <p class="mcp-note">把上面的 <b>mcpServers</b> 字段写进 AI 客户端的配置即可连接。
+    Claude Code / Cursor 等直接认项目根目录的 <b>.mcp.json</b>（本仓库已创建，内容同上）；
+    ZCode 已配好工作区配置，重开会话自动生效。连上后让 AI「看下功能台有哪些待开发功能」即可验证。</p>
+  </div>
+
+  <div class="modal-actions">
+    <button type="button" class="btn ghost" id="btnMcpCopyJson">复制 JSON</button>
+    <button type="button" class="btn primary" id="btnMcpClose">关闭</button>
   </div>
 </dialog>
 

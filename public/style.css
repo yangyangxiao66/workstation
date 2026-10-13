@@ -654,6 +654,56 @@ table.ftable {
 
 .modal-sm { width: min(400px, calc(100vw - 32px)); }
 
+.modal-lg { width: min(640px, calc(100vw - 32px)); }
+
+/* 网页内的 MCP 接入说明（两个块） */
+
+.mcp-block { margin-bottom: 16px; }
+
+.mcp-cap {
+  margin-bottom: 8px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+
+.mcp-tools { margin: 0; padding: 0; list-style: none; }
+
+.mcp-tools li {
+  display: flex;
+  gap: 12px;
+  padding: 3px 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.mcp-tools code {
+  flex: none;
+  min-width: 150px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--accent);
+}
+
+.code-block {
+  margin: 0;
+  padding: 12px 14px;
+  background: var(--field);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--ink);
+  white-space: pre;
+  overflow-x: auto;
+}
+
+.mcp-note { margin: 8px 0 0; font-size: 12.5px; line-height: 1.7; color: var(--muted); }
+
+.mcp-note b { color: var(--ink); }
+
 .c-msg { margin: 0; font-size: 13.5px; line-height: 1.7; color: var(--muted); }
 
 .modal h2 { margin: 0 0 14px; font-size: 17px; padding-right: 30px; }

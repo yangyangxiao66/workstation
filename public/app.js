@@ -57,7 +57,11 @@ async function api(method, url, body) {
 
 async function copyText(text) {
   try {
-    await navigator.clipboard.writeText(text);
+    // 某些环境（内嵌浏览器 / 未授权）剪贴板 API 会挂起而非报错，限时后走降级方案
+    await Promise.race([
+      navigator.clipboard.writeText(text),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('clipboard timeout')), 800)),
+    ]);
     return true;
   } catch {
     const ta = document.createElement('textarea');
@@ -66,7 +70,8 @@ async function copyText(text) {
     ta.style.opacity = '0';
     document.body.appendChild(ta);
     ta.select();
-    const ok = document.execCommand('copy');
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch { ok = false; }
     ta.remove();
     return ok;
   }
@@ -771,6 +776,16 @@ function bind() {
     }
   });
 
+  // 网页内的 MCP 接入说明弹窗
+  els.btnMcp.addEventListener('click', () => els.mmodal.showModal());
+  els.mmodalX.addEventListener('click', () => els.mmodal.close());
+  els.btnMcpClose.addEventListener('click', () => els.mmodal.close());
+  els.mmodal.addEventListener('cancel', (e) => e.preventDefault());
+  els.btnMcpCopyJson.addEventListener('click', async () => {
+    const ok = await copyText(els.mcpJson.textContent);
+    toast(ok ? '已复制 MCP 连接 JSON' : '复制失败，请手动选择');
+  });
+
   // 按 / 快速聚焦搜索框；Esc 关闭项目菜单
   document.addEventListener('keydown', (e) => {
     if (e.key === '/' && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) {
@@ -792,7 +807,8 @@ function init() {
     'modal', 'modalTitle', 'form', 'btnCancel', 'fTitle', 'fDesc', 'fModule', 'fStatus',
     'fPriority', 'fProgress', 'fProgressVal', 'fTags', 'pmodal', 'pmodalTitle', 'pform',
     'pCancel', 'pName', 'pDesc', 'modalX', 'pmodalX', 'cmodal', 'cTitle', 'cMsg',
-    'cOk', 'cCancel', 'toast']) {
+    'cOk', 'cCancel', 'btnMcp', 'mmodal', 'mmodalX', 'btnMcpClose', 'btnMcpCopyJson',
+    'mcpJson', 'toast']) {
     els[id] = $(id);
   }
   bind();
