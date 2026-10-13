@@ -73,7 +73,9 @@ node server.js
 ## 给 AI 用：MCP 服务
 
 `mcp-server.js` 是零依赖的 stdio MCP 服务，把功能台暴露成 AI 可调用的工具，
-与 HTTP 服务共用 `lib/store.js` 数据层（校验规则、状态/完成度联动完全一致）：
+与 HTTP 服务共用 `lib/store.js` 数据层（校验规则、状态/完成度联动完全一致）。
+
+### 块一：MCP 提供的工具
 
 | 工具 | 说明 |
 | --- | --- |
@@ -85,9 +87,17 @@ node server.js
 | `create_project` / `delete_project` | 项目增删 |
 | `export_markdown` | 导出 Markdown 清单（全部或单项目） |
 
-注册方式（ZCode，工作区 `.zcode/config.json`；用户级放 `~/.zcode/cli/config.json`）：
+AI 的推荐用法：开工前 `list_features` 看待办 → 领取一项置开发中 → 完成后 `advance_feature` 或置 done → 需要全貌时 `export_markdown`。
+
+### 块二：怎么连接
+
+MCP 服务通过 **stdio 传输**工作：客户端拉起 `node D:/kaifamanager/mcp-server.js` 子进程，
+用 stdin/stdout 上的 JSON-RPC 通信。零依赖、无需先启动 `server.js`（数据层直接读写 `data/features.json`）。
+
+**ZCode**（本仓库已配好工作区级，重开会话即生效）
 
 ```json
+// 工作区级：<项目根>/.zcode/config.json（仅本项目，随仓库走，注意路径按机器修改）
 {
   "mcp": {
     "servers": {
@@ -100,8 +110,39 @@ node server.js
 }
 ```
 
-Claude Code 用 `claude mcp add feature-board -- node D:/kaifamanager/mcp-server.js`。
-AI 的推荐用法：开工前 `list_features` 看待办 → 领取一项置开发中 → 完成后 `advance_feature` 或置 done → 需要全貌时 `export_markdown`。
+用户级（所有项目生效）则写在 `~/.zcode/cli/config.json` 的同一位置 `mcp.servers`。
+也可以在客户端图形界面 **Settings → MCP** 里添加。配置后新会话自动连接，工具以
+`mcp__feature-board__list_features` 这类名字出现。
+
+**Claude Code**
+
+```bash
+claude mcp add feature-board -- node D:/kaifamanager/mcp-server.js
+```
+
+或直接编辑项目根的 `.mcp.json`（团队共享）：
+
+```json
+{
+  "mcpServers": {
+    "feature-board": { "command": "node", "args": ["D:/kaifamanager/mcp-server.js"] }
+  }
+}
+```
+
+**Cursor 及其他支持 stdio MCP 的客户端**
+
+`.cursor/mcp.json`（Cursor）或对应客户端的 MCP 配置，格式同为上面的 `mcpServers` 结构，
+命令一律是 `node D:/kaifamanager/mcp-server.js`。
+
+**验证是否连上**
+
+```bash
+# 手动模拟一次 MCP 握手：能看到 feature-board 0.1.0 和工具列表即正常
+echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"test","version":"0"}}}' | node mcp-server.js
+```
+
+连上后在客户端里问一句「看下功能台有哪些待开发功能」，AI 能调出清单就说明通了。
 
 ## API
 
