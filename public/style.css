@@ -145,6 +145,71 @@ body {
 
 .side-item.active .side-n { color: var(--sc, var(--accent)); font-weight: 700; }
 
+/* 项目行：主体 + 「⋯」操作按钮 */
+
+.side-row { display: flex; align-items: center; gap: 2px; }
+
+.side-row .side-item { flex: 1; min-width: 0; }
+
+.proj-more {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--muted);
+  background: none;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  opacity: 0.55;
+  transition: opacity 0.15s, background 0.15s;
+}
+
+.side-row:hover .proj-more { opacity: 1; }
+
+.proj-more:hover { background: color-mix(in srgb, var(--ink) 8%, transparent); color: var(--ink); }
+
+/* 「⋯」弹出的操作菜单（全局定位，避免被侧栏滚动区域裁切） */
+
+.proj-menu {
+  position: fixed;
+  z-index: 60;
+  min-width: 150px;
+  padding: 5px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(60, 50, 10, 0.2);
+}
+
+.pm-item {
+  display: block;
+  width: 100%;
+  padding: 8px 11px;
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  color: var(--ink);
+  background: none;
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.pm-item:hover { background: color-mix(in srgb, var(--ink) 6%, transparent); }
+
+.pm-danger { color: var(--danger); }
+
+.pm-danger:hover { background: color-mix(in srgb, var(--danger) 9%, transparent); }
+
+.pm-item.armed, .pm-item.armed:hover { color: #fff; background: var(--danger); }
+
 .side-foot {
   margin-top: auto;
   padding-top: 14px;

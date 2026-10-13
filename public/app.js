@@ -173,10 +173,13 @@ function sideItem(filterKey, value, label, count, color, active) {
 }
 
 function renderSidebar() {
-  // 项目列表（含各自完成度）
+  // 项目列表（含各自完成度 + 「⋯」操作入口）
   els.sideProjects.innerHTML = '<div class="side-cap">项目</div>' +
     state.db.projects.map((p) =>
-      sideItem('proj', p.id, p.name, pctText(p.features), 'var(--accent)', p.id === state.projectId)
+      '<div class="side-row">' +
+        sideItem('proj', p.id, p.name, pctText(p.features), 'var(--accent)', p.id === state.projectId) +
+        '<button type="button" class="proj-more" data-proj-menu="' + esc(p.id) + '" title="项目操作" aria-label="项目操作">⋯</button>' +
+      '</div>'
     ).join('');
 
   const c = statusCounts();
@@ -234,8 +237,6 @@ function renderHead() {
       '</div>' +
     '</div>' +
     '<div class="phead-acts">' +
-      '<button type="button" class="btn ghost sm" data-act="rename-project">重命名</button>' +
-      '<button type="button" class="btn ghost sm danger-ghost" data-act="del-project">删除项目</button>' +
       '<button type="button" class="btn primary" data-act="new-project">＋ 新建项目</button>' +
     '</div>';
 }
@@ -382,15 +383,48 @@ function onDeleteFeature(btn, f) {
   }
 }
 
-function onDeleteProject(btn) {
-  if (btn.dataset.armed === '1') {
-    const name = activeProject() ? activeProject().name : '';
-    api('DELETE', '/api/projects/' + state.projectId)
-      .then(() => refresh(null).then(() => toast('已删除项目：' + name)))
-      .catch((e) => toast(e.message));
-  } else {
-    armButton(btn, '删除项目', '确认删除？项目下的功能会一起删除', 3600);
-  }
+/* ---------- 项目「⋯」操作菜单 ---------- */
+
+function closeProjMenu() {
+  const m = document.getElementById('projMenu');
+  if (m) m.remove();
+}
+
+function openProjMenu(btn, pid) {
+  closeProjMenu();
+  const menu = document.createElement('div');
+  menu.className = 'proj-menu';
+  menu.id = 'projMenu';
+  menu.innerHTML =
+    '<button type="button" class="pm-item" data-pact="rename">重命名</button>' +
+    '<button type="button" class="pm-item pm-danger" data-pact="del">删除项目</button>';
+  document.body.appendChild(menu);
+  const r = btn.getBoundingClientRect();
+  menu.style.top = r.bottom + 4 + 'px';
+  menu.style.left = Math.max(8, r.right - menu.offsetWidth) + 'px';
+
+  menu.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const item = e.target.closest('.pm-item');
+    if (!item) return;
+    if (item.dataset.pact === 'rename') {
+      closeProjMenu();
+      const p = state.db.projects.find((x) => x.id === pid);
+      if (p) openProjectModal(p);
+    } else if (item.dataset.pact === 'del') {
+      if (item.dataset.armed === '1') {
+        const p = state.db.projects.find((x) => x.id === pid);
+        const name = p ? p.name : '';
+        api('DELETE', '/api/projects/' + pid)
+          .then(() => refresh(pid === state.projectId ? null : state.projectId))
+          .then(() => toast('已删除项目：' + name))
+          .catch((err) => toast(err.message));
+        closeProjMenu();
+      } else {
+        armButton(item, '删除项目', '确认删除？', 3000);
+      }
+    }
+  });
 }
 
 // 两段式确认：第一次点击变成确认态，超时恢复
@@ -613,8 +647,14 @@ function bind() {
     }
   });
 
-  // 侧栏导航
+  // 侧栏导航 + 项目「⋯」菜单入口
   els.side.addEventListener('click', (e) => {
+    const more = e.target.closest('.proj-more');
+    if (more) {
+      e.stopPropagation();
+      openProjMenu(more, more.dataset.projMenu);
+      return;
+    }
     const item = e.target.closest('.side-item');
     if (!item) return;
     if (item.dataset.proj) {
@@ -671,8 +711,6 @@ function bind() {
     const id = btn.dataset.id;
 
     if (act === 'new-project') return openProjectModal();
-    if (act === 'rename-project') return openProjectModal(activeProject());
-    if (act === 'del-project') return onDeleteProject(btn);
     if (act === 'new') return openFeatureModal();
     if (act === 'clear') {
       state.filter = { status: 'all', module: 'all', q: '' };
@@ -693,13 +731,17 @@ function bind() {
     }
   });
 
-  // 按 / 快速聚焦搜索框
+  // 按 / 快速聚焦搜索框；Esc 关闭项目菜单
   document.addEventListener('keydown', (e) => {
     if (e.key === '/' && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) {
       e.preventDefault();
       els.search.focus();
     }
+    if (e.key === 'Escape') closeProjMenu();
   });
+
+  // 点击菜单外部关闭项目菜单
+  document.addEventListener('click', closeProjMenu);
 }
 
 /* ---------- 启动 ---------- */
