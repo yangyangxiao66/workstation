@@ -287,24 +287,23 @@ function renderList() {
     return;
   }
   // 分层区域：按状态分组展示（先做正在进行的，已完成的沉底）
+  // 行已在分组里，编号和状态列都是重复标志，不再单独展示
   const GROUP_ORDER = MD_ORDER; // doing → todo → idea → shelved → done
   const filtered = filterActive();
   let html =
     '<table class="ftable">' +
     // 固定布局的显式列宽，保证表头与数据逐列对齐、间距均匀
     '<colgroup>' +
-      '<col style="width:7%">' +   // 编号
-      '<col style="width:22%">' +  // 功能
-      '<col style="width:9%">' +   // 状态
-      '<col style="width:10%">' +  // 完成度
-      '<col style="width:7%">' +   // 优先级
-      '<col style="width:9%">' +   // 模块
-      '<col style="width:7%">' +   // 标签
-      '<col style="width:8%">' +   // 更新
+      '<col style="width:28%">' +  // 功能
+      '<col style="width:12%">' +  // 完成度
+      '<col style="width:9%">' +   // 优先级
+      '<col style="width:12%">' +  // 模块
+      '<col style="width:8%">' +   // 标签
+      '<col style="width:10%">' +  // 更新
       '<col style="width:21%">' +  // 操作
     '</colgroup>' +
     '<thead><tr>' +
-      '<th>编号</th><th>功能</th><th>状态</th><th>完成度</th><th>优先级</th><th>模块</th><th>标签</th><th>更新</th><th>操作</th>' +
+      '<th>功能</th><th>完成度</th><th>优先级</th><th>模块</th><th>标签</th><th>更新</th><th>操作</th>' +
     '</tr></thead>';
   for (const st of GROUP_ORDER) {
     const group = rows.filter((f) => f.status === st);
@@ -317,21 +316,19 @@ function renderList() {
 
 // 分组标题行：用表头单元格（th）标识，不是数据行
 function groupHeaderRow(st, n) {
-  return '<tr class="grp" style="--sc:var(--c-' + st + ')"><th colspan="9" scope="colgroup">' +
+  return '<tr class="grp" style="--sc:var(--c-' + st + ')"><th colspan="7" scope="colgroup">' +
     '<span class="grp-label">' + STATUS[st].label + '</span><span class="grp-n">' + n + '</span>' +
   '</th></tr>';
 }
 
 function rowHtml(f) {
-  const st = STATUS[f.status];
   const prio = PRIORITY[f.priority] || PRIORITY.mid;
   const pr = fProgress(f);
   const canShelve = ['idea', 'todo', 'doing'].includes(f.status);
-  return '<tr style="--sc:var(--c-' + f.status + ')">' +
-    '<td class="c-id">' + esc(f.id) + '</td>' +
+  // 编号存在 tr 的 data-id 上供操作使用，不再单独展示
+  return '<tr data-fid="' + esc(f.id) + '" style="--sc:var(--c-' + f.status + ')">' +
     '<td class="c-title"><span class="t">' + esc(f.title) + '</span>' +
       (f.desc ? '<span class="d">' + esc(f.desc) + '</span>' : '') + '</td>' +
-    '<td><span class="chip">' + st.label + '</span></td>' +
     '<td class="c-prog"><span class="mini-bar"><i style="width:' + pr + '%"></i></span><span class="mini-num">' + pr + '%</span></td>' +
     '<td><span class="prio ' + esc(f.priority) + '">' + prio.label + '</span></td>' +
     '<td class="c-mod">' + esc(f.module || '未分类') + '</td>' +
