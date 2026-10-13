@@ -286,42 +286,30 @@ function renderList() {
     els.list.innerHTML = emptyHtml('没有匹配的功能', '换个关键词，或清除当前筛选。', '清除筛选', 'clear');
     return;
   }
-  // 分层区域：按状态分组展示（先做正在进行的，已完成的沉底）
-  // 行已在分组里，编号和状态列都是重复标志，不再单独展示
-  const GROUP_ORDER = MD_ORDER; // doing → todo → idea → shelved → done
-  const filtered = filterActive();
+  // 平铺表格：状态分布看顶部统计条，行内用状态胶囊标明
   let html =
     '<table class="ftable">' +
     // 固定布局的显式列宽，保证表头与数据逐列对齐、间距均匀
     '<colgroup>' +
-      '<col style="width:28%">' +  // 功能
-      '<col style="width:12%">' +  // 完成度
-      '<col style="width:9%">' +   // 优先级
-      '<col style="width:12%">' +  // 模块
+      '<col style="width:26%">' +  // 功能
+      '<col style="width:9%">' +   // 状态
+      '<col style="width:11%">' +  // 完成度
+      '<col style="width:8%">' +   // 优先级
+      '<col style="width:10%">' +  // 模块
       '<col style="width:8%">' +   // 标签
-      '<col style="width:10%">' +  // 更新
-      '<col style="width:21%">' +  // 操作
+      '<col style="width:9%">' +   // 更新
+      '<col style="width:19%">' +  // 操作
     '</colgroup>' +
     '<thead><tr>' +
-      '<th>功能</th><th>完成度</th><th>优先级</th><th>模块</th><th>标签</th><th>更新</th><th>操作</th>' +
-    '</tr></thead>';
-  for (const st of GROUP_ORDER) {
-    const group = rows.filter((f) => f.status === st);
-    if (!group.length && filtered) continue; // 筛选时省略空区块，平时保留区块骨架
-    html += '<tbody>' + groupHeaderRow(st, group.length) + group.map(rowHtml).join('') + '</tbody>';
-  }
-  html += '</table>';
+      '<th>功能</th><th>状态</th><th>完成度</th><th>优先级</th><th>模块</th><th>标签</th><th>更新</th><th>操作</th>' +
+    '</tr></thead><tbody>' +
+    rows.map(rowHtml).join('') +
+    '</tbody></table>';
   els.list.innerHTML = html;
 }
 
-// 分组标题行：用表头单元格（th）标识，不是数据行
-function groupHeaderRow(st, n) {
-  return '<tr class="grp" style="--sc:var(--c-' + st + ')"><th colspan="7" scope="colgroup">' +
-    '<span class="grp-label">' + STATUS[st].label + '</span><span class="grp-n">' + n + '</span>' +
-  '</th></tr>';
-}
-
 function rowHtml(f) {
+  const st = STATUS[f.status];
   const prio = PRIORITY[f.priority] || PRIORITY.mid;
   const pr = fProgress(f);
   const canShelve = ['idea', 'todo', 'doing'].includes(f.status);
@@ -329,6 +317,7 @@ function rowHtml(f) {
   return '<tr data-fid="' + esc(f.id) + '" style="--sc:var(--c-' + f.status + ')">' +
     '<td class="c-title"><span class="t">' + esc(f.title) + '</span>' +
       (f.desc ? '<span class="d">' + esc(f.desc) + '</span>' : '') + '</td>' +
+    '<td><span class="chip">' + st.label + '</span></td>' +
     '<td class="c-prog"><span class="mini-bar"><i style="width:' + pr + '%"></i></span><span class="mini-num">' + pr + '%</span></td>' +
     '<td><span class="prio ' + esc(f.priority) + '">' + prio.label + '</span></td>' +
     '<td class="c-mod">' + esc(f.module || '未分类') + '</td>' +
