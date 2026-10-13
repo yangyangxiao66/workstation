@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "feature-board": {
+      "command": "node",
+      "args": ["D:/kaifamanager/mcp-server.js"]
+    }
+  }
+}
