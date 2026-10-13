@@ -70,6 +70,39 @@ node server.js
 - 删除功能、删除项目都是连点两次（第一次是确认；删项目会连同其功能一起删除）
 - 小屏幕下侧栏收起，点左上角 ☰ 按钮抽出
 
+## 给 AI 用：MCP 服务
+
+`mcp-server.js` 是零依赖的 stdio MCP 服务，把功能台暴露成 AI 可调用的工具，
+与 HTTP 服务共用 `lib/store.js` 数据层（校验规则、状态/完成度联动完全一致）：
+
+| 工具 | 说明 |
+| --- | --- |
+| `list_projects` | 所有项目 + 完成度 |
+| `list_features` | 功能清单（可按项目 / 状态过滤） |
+| `get_feature` | 单个功能详情 |
+| `create_feature` / `update_feature` / `delete_feature` | 功能增删改 |
+| `advance_feature` | 推进状态一步（完成度自动联动） |
+| `create_project` / `delete_project` | 项目增删 |
+| `export_markdown` | 导出 Markdown 清单（全部或单项目） |
+
+注册方式（ZCode，工作区 `.zcode/config.json`；用户级放 `~/.zcode/cli/config.json`）：
+
+```json
+{
+  "mcp": {
+    "servers": {
+      "feature-board": {
+        "command": "node",
+        "args": ["D:/kaifamanager/mcp-server.js"]
+      }
+    }
+  }
+}
+```
+
+Claude Code 用 `claude mcp add feature-board -- node D:/kaifamanager/mcp-server.js`。
+AI 的推荐用法：开工前 `list_features` 看待办 → 领取一项置开发中 → 完成后 `advance_feature` 或置 done → 需要全貌时 `export_markdown`。
+
 ## API
 
 | 方法 | 路径 | 说明 |
@@ -89,7 +122,10 @@ node server.js
 
 ```
 kaifamanager/
-├── server.js           # 零依赖 HTTP 服务（静态文件 + API + 落盘）
+├── server.js           # 零依赖 HTTP 服务（静态文件 + API + 热更新）
+├── mcp-server.js       # stdio MCP 服务（AI 工具）
+├── lib/
+│   └── store.js        # 共享数据层（校验 + 状态/完成度联动）
 ├── public/
 │   ├── index.html
 │   ├── style.css
