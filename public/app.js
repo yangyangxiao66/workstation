@@ -805,3 +805,11 @@ function init() {
 }
 
 init();
+
+// 开发热更新：public/ 下的文件被修改时，页面自动刷新（改 server.js 仍需重启服务）
+if (window.EventSource) {
+  const es = new EventSource('/api/hot');
+  es.onmessage = (e) => {
+    if (e.data === 'reload') location.reload();
+  };
+}

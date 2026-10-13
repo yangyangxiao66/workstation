@@ -404,6 +404,31 @@ async function handleApi(req, res, pathname) {
   return sendJson(res, 404, { error: '接口不存在' });
 }
 
+/* ---------- 热更新：public/ 文件变化时通知页面自动刷新 ---------- */
+
+const hotClients = new Set();
+
+try {
+  fs.watch(PUBLIC_DIR, { recursive: true }, () => {
+    for (const res of hotClients) {
+      try { res.write('data: reload\n\n'); } catch { /* 连接已断开，忽略 */ }
+    }
+  });
+} catch {
+  console.warn('热更新不可用：当前环境不支持递归监视目录');
+}
+
+function serveHot(req, res) {
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-store',
+    Connection: 'keep-alive',
+  });
+  res.write('retry: 2000\n\n');
+  hotClients.add(res);
+  req.on('close', () => hotClients.delete(res));
+}
+
 /* ---------- 静态文件 ---------- */
 
 function serveStatic(res, pathname) {
@@ -432,6 +457,7 @@ function serveStatic(res, pathname) {
 const server = http.createServer(async (req, res) => {
   const pathname = new URL(req.url, 'http://local').pathname;
   try {
+    if (pathname === '/api/hot') return serveHot(req, res);
     if (pathname.startsWith('/api/')) return await handleApi(req, res, pathname);
     if (req.method !== 'GET') {
       return sendJson(res, 405, { error: '不支持的请求方法' });
