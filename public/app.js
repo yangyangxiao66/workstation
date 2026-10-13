@@ -630,9 +630,7 @@ function bind() {
   els.pmodalX.addEventListener('click', () => els.pmodal.close());
   els.modal.addEventListener('cancel', (e) => e.preventDefault());
   els.pmodal.addEventListener('cancel', (e) => e.preventDefault());
-
-  // 确认弹窗保持轻量：点遮罩 = 取消
-  els.cmodal.addEventListener('click', (e) => { if (e.target === els.cmodal) els.cmodal.close(); });
+  // 确认弹窗同样不响应遮罩点击（按 Esc 仍视为取消）
 
   // 功能表单
   els.fProgress.addEventListener('input', () => {
