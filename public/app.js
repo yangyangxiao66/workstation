@@ -244,8 +244,8 @@ function renderHead() {
 function renderPipeline() {
   const c = statusCounts();
   const keys = ['all', ...ORDER];
-  // 段宽与数量成正比；给每段一个最小宽度，防止零计数段的文字被裁切
-  els.pipeline.style.gridTemplateColumns = keys.map((k) => 'minmax(68px, ' + (c[k] || 0.45) + 'fr)').join(' ');
+  // 六段等宽，保持整齐（数量只体现在数字上，不体现在宽度上）
+  els.pipeline.style.gridTemplateColumns = 'repeat(' + keys.length + ', minmax(68px, 1fr))';
   els.pipeline.innerHTML = keys
     .map((k) => {
       const label = k === 'all' ? '全部' : STATUS[k].label;
