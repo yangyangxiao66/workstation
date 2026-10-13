@@ -318,10 +318,9 @@ function rowHtml(f) {
   const prio = PRIORITY[f.priority] || PRIORITY.mid;
   const pr = fProgress(f);
   const canShelve = ['idea', 'todo', 'doing'].includes(f.status);
-  // 编号存在 tr 的 data-id 上供操作使用，不再单独展示
+  // 编号存在 tr 的 data-id 上供操作使用，不再单独展示；描述放悬停提示，保证行高统一
   return '<tr data-fid="' + esc(f.id) + '" style="--sc:var(--c-' + f.status + ')">' +
-    '<td class="c-title"><span class="t">' + esc(f.title) + '</span>' +
-      (f.desc ? '<span class="d">' + esc(f.desc) + '</span>' : '') + '</td>' +
+    '<td class="c-title"' + (f.desc ? ' title="' + esc(f.desc) + '"' : '') + '><span class="t">' + esc(f.title) + '</span></td>' +
     '<td><span class="chip">' + st.label + '</span></td>' +
     '<td class="c-prog"><span class="mini-bar"><i style="width:' + pr + '%"></i></span><span class="mini-num">' + pr + '%</span></td>' +
     '<td><span class="prio ' + esc(f.priority) + '">' + prio.label + '</span></td>' +

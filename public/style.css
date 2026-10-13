@@ -484,12 +484,24 @@ table.ftable {
 }
 
 .ftable td {
+  height: 48px; /* 统一行高 */
   padding: 10px 12px;
   border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent);
-  vertical-align: top;
+  vertical-align: middle;
 }
 
 .ftable tbody tr:last-child td { border-bottom: none; }
+
+.c-title { max-width: 0; } /* 配合 table-layout:fixed 让长标题省略而不是撑高 */
+
+.c-title .t {
+  display: block;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
 /* 状态分组标题行（表头单元格，分层区域） */
 
@@ -521,19 +533,13 @@ table.ftable {
 
 .c-id { font-family: var(--mono); font-size: 12px; color: var(--muted); white-space: nowrap; }
 
-.c-title .t { display: block; font-weight: 600; line-height: 1.4; }
-
-.c-title .d {
+.c-title .t {
   display: block;
-  margin-top: 2px;
-  font-size: 12px;
-  line-height: 1.5;
-  color: var(--muted);
-  max-width: 52ch;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .chip {
